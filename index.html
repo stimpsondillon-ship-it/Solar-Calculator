@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Calculator Portal</title>
+<style>
+    body { font-family: Arial, sans-serif; background-color:#f4f4f4; text-align:center; padding:20px; }
+    h1 { color:#2c3e50; }
+    .container { max-width:700px; margin:0 auto; background-color:white; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    label { display:block; margin-top:15px; text-align:left; font-weight:bold; }
+    input { width:100%; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ccc; }
+    button { margin-top:20px; padding:15px 25px; color:white; border:none; border-radius:5px; font-size:16px; cursor:pointer; transition: background 0.3s;}
+    button:hover { opacity:0.85; }
+    .results { margin-top:30px; text-align:left; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-top:20px;}
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background-color:#1abc9c; color:white; }
+    .section { display:none; }
+    .portal-buttons { display:flex; justify-content:center; gap:20px; margin-top:30px; flex-wrap:wrap; }
+    .highlight { font-weight:bold; font-size:20px; color:#e67e22; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SECTION -->
+<div class="container section" id="login">
+    <h1>Login to Access Solar Calculators</h1>
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter username">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+    <button style="background-color:#1abc9c;" onclick="checkLogin()">Login</button>
+</div>
+
+<!-- PORTAL SECTION -->
+<div class="container section" id="portal">
+    <h1>Welcome to Solar Calculator Portal</h1>
+    <p>Select which calculator you want to use:</p>
+    <div class="portal-buttons">
+        <button onclick="showSection('ppa')" style="padding:20px 40px; font-size:18px; border-radius:10px; background-color:#f39c12;">PPA Calculator</button>
+        <button onclick="showSection('loan')" style="padding:20px 40px; font-size:18px; border-radius:10px; background-color:#2980b9;">Loan Calculator</button>
+    </div>
+    <button style="margin-top:20px; background-color:#e74c3c;" onclick="logout()">Logout</button>
+</div>
+
+<!-- PPA CALCULATOR SECTION -->
+<div class="container section" id="ppa">
+    <h1>California Solar Power Purchase Agreement (PPA) Calculator</h1>
+    <p>A Power Purchase Agreement (PPA) is a contract where you pay for electricity produced by solar panels without owning the panels. This calculator estimates your payments and compares them to your current provider.</p>
+
+    <label for="avgBill">Monthly Average Bill ($)</label>
+    <input type="text" id="avgBill" placeholder="e.g. 400">
+
+    <label for="currentRate">Current Provider Annual Rate Increase (%)</label>
+    <input type="text" id="currentRate" placeholder="e.g. 6.5">
+
+    <label for="estimatedSavings">Estimated Savings (%)</label>
+    <input type="text" id="estimatedSavings" placeholder="e.g. 25">
+
+    <label for="annualIncrease">PPA Annual Rate Increase (%)</label>
+    <input type="text" id="annualIncrease" placeholder="e.g. 3.59">
+
+    <label for="termYears">PPA Term (Years)</label>
+    <input type="text" id="termYears" placeholder="e.g. 25">
+
+    <button style="background-color:#f39c12;" onclick="calculatePPA()">Calculate</button>
+    <button style="margin-top:20px; background-color:#3498db;" onclick="showSection('portal')">Back to Portal</button>
+
+    <div class="results" id="results"></div>
+</div>
+
+<!-- LOAN FINANCING CALCULATOR SECTION -->
+<div class="container section" id="loan">
+    <h1>Solar Loan Financing Calculator</h1>
+    <p>Estimate your loan payments and compare to current utility provider over 25 years.</p>
+
+    <label for="loanPayment">Loan Monthly Payment ($)</label>
+    <input type="text" id="loanPayment" placeholder="e.g. 400">
+
+    <label for="loanAPR">Loan APR (%)</label>
+    <input type="text" id="loanAPR" placeholder="e.g. 5">
+
+    <label for="loanDuration">Loan Duration (Years)</label>
+    <input type="text" id="loanDuration" placeholder="e.g. 5">
+
+    <label for="currentBill">Current Average Bill ($)</label>
+    <input type="text" id="currentBill" placeholder="e.g. 400">
+
+    <label for="providerRate">Current Provider Annual Rate Increase (%)</label>
+    <input type="text" id="providerRate" placeholder="e.g. 3.5">
+
+    <button style="background-color:#2980b9;" onclick="calculateLoan()">Calculate</button>
+    <button style="margin-top:20px; background-color:#3498db;" onclick="showSection('portal')">Back to Portal</button>
+
+    <div class="results" id="loanResults"></div>
+</div>
+
+<script>
+// Show only one section at a time
+function showSection(sectionId){
+    let sections = document.querySelectorAll('.section');
+    sections.forEach(sec => sec.style.display = 'none');
+    document.getElementById(sectionId).style.display = 'block';
+}
+
+// LOGIN FUNCTION
+function checkLogin() {
+    let user = document.getElementById('username').value.trim();
+    let pass = document.getElementById('password').value.trim();
+    if(user === "Solar123" && pass === "Panels123") {
+        showSection('portal');
+    } else {
+        alert("Incorrect username or password.");
+    }
+}
+
+// LOGOUT FUNCTION
+function logout() {
+    showSection('login');
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+}
+
+// PPA CALCULATOR (FULL DECIMAL MONTHLY, ANNUAL = MONTHLY * 12)
+function calculatePPA(){
+    let avgBill = parseFloat(document.getElementById('avgBill').value.replace(/[^0-9.]/g,''));
+    let currentRate = parseFloat(document.getElementById('currentRate').value.replace(/[^0-9.]/g,''))/100;
+    let estimatedSavings = parseFloat(document.getElementById('estimatedSavings').value.replace(/[^0-9.]/g,''))/100;
+    let annualIncrease = parseFloat(document.getElementById('annualIncrease').value.replace(/[^0-9.]/g,''))/100;
+    let termYears = parseFloat(document.getElementById('termYears').value.replace(/[^0-9.]/g,''));
+
+    if([avgBill,currentRate,estimatedSavings,annualIncrease,termYears].some(isNaN) || avgBill<=0 || termYears<=0 || estimatedSavings<0 || annualIncrease<0 || currentRate<0){
+        alert("Please enter valid numeric values for all fields.");
+        return;
+    }
+
+    // Initial monthly payments (full decimal)
+    let ppaMonthly = avgBill * (1 - estimatedSavings);
+    let utilityMonthly = avgBill;
+
+    let ppaTable = [];
+    let utilityTable = [];
+
+    let totalPPA = 0;
+    let totalUtility = 0;
+
+    for(let year=1; year<=termYears; year++){
+        if(year === 1){
+            ppaTable.push(ppaMonthly);
+            utilityTable.push(utilityMonthly);
+        } else {
+            let lastPPA = ppaTable[ppaTable.length - 1];
+            let lastUtility = utilityTable[utilityTable.length - 1];
+
+            let newPPA = lastPPA * (1 + annualIncrease); // full decimal
+            let newUtility = lastUtility * (1 + currentRate); // full decimal
+
+            ppaTable.push(newPPA);
+            utilityTable.push(newUtility);
+        }
+        totalPPA += ppaTable[ppaTable.length -1] * 12; // multiply by 12, then round only for display
+        totalUtility += utilityTable[utilityTable.length -1] * 12;
+    }
+
+    // Build table HTML
+    let tableHTML = `<h2>${termYears}-Year Amortization</h2>`;
+    tableHTML += `<table><tr><th>Year</th><th>PPA Monthly Payment</th><th>Utility Monthly Payment</th><th>PPA Annual Total</th><th>Utility Annual Total</th></tr>`;
+
+    for(let year=1; year<=termYears; year++){
+        tableHTML += `<tr><td>${year}</td><td>$${ppaTable[year-1].toFixed(4)}</td><td>$${utilityTable[year-1].toFixed(4)}</td><td>$${(ppaTable[year-1]*12).toFixed(4)}</td><td>$${(utilityTable[year-1]*12).toFixed(4)}</td></tr>`;
+    }
+    tableHTML += `</table>`;
+
+    // Total summary
+    let summaryHTML = `<h2>Total Summary</h2>`;
+    summaryHTML += `<p class="highlight">Total PPA Payments over ${termYears} Years: $${totalPPA.toFixed(4)}</p>`;
+    summaryHTML += `<p class="highlight">Total Utility Payments over ${termYears} Years: $${totalUtility.toFixed(4)}</p>`;
+    summaryHTML += `<p class="highlight">Total Savings: $${(totalUtility - totalPPA).toFixed(4)}</p>`;
+
+    document.getElementById('results').innerHTML = tableHTML + summaryHTML;
+}
+
+// LOAN/FINANCE CALCULATOR (UNCHANGED)
+function calculateLoan(){
+    let monthlyPayment = parseFloat(document.getElementById('loanPayment').value.replace(/[^0-9.]/g,''));
+    let apr = parseFloat(document.getElementById('loanAPR').value.replace(/[^0-9.]/g,''))/100;
+    let duration = parseFloat(document.getElementById('loanDuration').value.replace(/[^0-9.]/g,''));
+    let currentBill = parseFloat(document.getElementById('currentBill').value.replace(/[^0-9.]/g,''));
+    let providerRate = parseFloat(document.getElementById('providerRate').value.replace(/[^0-9.]/g,''))/100;
+
+    if([monthlyPayment,apr,duration,currentBill,providerRate].some(isNaN) || monthlyPayment<=0 || duration<=0 || apr<0 || providerRate<0 || currentBill<=0){
+        alert("Please enter valid numeric values for all fields.");
+        return;
+    }
+
+    let monthsLoan = duration*12;
+    let totalLoanPaid = monthlyPayment * monthsLoan;
+
+    let totalUtilityPaid = 0;
+    let utilityMonthly = currentBill;
+    for(let i=1;i<=25*12;i++){
+        totalUtilityPaid += utilityMonthly;
+        utilityMonthly *= (1 + providerRate/12);
+    }
+
+    let totalSavings = totalUtilityPaid - totalLoanPaid;
+
+    let comparisonHTML = `<h2>25-Year Comparison Summary</h2>`;
+    comparisonHTML += `<table><tr><th>Metric</th><th>Loan Payment</th><th>Current Utility Provider</th></tr>`;
+    comparisonHTML += `<tr><td>Total Paid</td><td>$${totalLoanPaid.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>$${totalUtilityPaid.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
+    comparisonHTML += `<tr><td>Total Savings</td><td colspan="2" class="highlight">$${totalSavings.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
+    comparisonHTML += `</table>`;
+
+    let tableHTML2 = `<h2>25-Year Annual Monthly Payments</h2>`;
+    tableHTML2 += `<table><tr><th>Year</th><th>Loan Monthly Payment</th><th>Current Utility Monthly Payment</th></tr>`;
+
+    let utilityMonthlyYear = currentBill;
+    for(let year=1; year<=25; year++){
+        let displayLoan = (year <= duration) ? monthlyPayment : 0;
+        tableHTML2 += `<tr><td>${year}</td><td>$${displayLoan.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>$${utilityMonthlyYear.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
+        utilityMonthlyYear *= (1 + providerRate);
+    }
+    tableHTML2 += `</table>`;
+
+    document.getElementById('loanResults').innerHTML = comparisonHTML + tableHTML2;
+}
+
+// Show login first
+showSection('login');
+</script>
+
+</body>
+</html>
